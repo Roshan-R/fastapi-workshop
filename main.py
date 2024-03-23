@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-
 from pydantic import BaseModel
 
 
@@ -8,7 +7,6 @@ class Movie(BaseModel):
     id: str
     rating: int
     director: str
-
 
 
 app = FastAPI()
@@ -23,7 +21,11 @@ movies = {
 async def root():
     return {"message": "Hello World"}
 
+@app.get("/movies/all")
+async def get_all_movies() -> list[Movie]:
+    return list(movies.values())
 
-@app.get("/movies/dune")
-async def get_dune() -> Movie | None:
-    return movies.get("dune")
+@app.get("/movies/{id}")
+async def get_dune(id) -> Movie | dict:
+    return movies.get(id, {"error": "Movie not found"})
+
