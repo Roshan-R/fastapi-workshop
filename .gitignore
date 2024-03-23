@@ -1,0 +1,5 @@
+.git/
+.ruff_cache/
+.venv/
+.__pycache__/
+
