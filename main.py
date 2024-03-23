@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, Request
+
 from pydantic import BaseModel
 from uuid import uuid4
 from contextlib import asynccontextmanager
-
 
 
 class Movie(BaseModel):
@@ -11,13 +11,11 @@ class Movie(BaseModel):
     rating: int
     director: str
 
-api_token = ""
+api_token = "Bearer " + str(uuid4())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load the ML model
-    api_token = uuid4()
-    print("Api Token", api_token)
+    print("Api Token: ", api_token)
     yield
 
 
@@ -30,9 +28,13 @@ movies = {
 }
 
 
-async def authenticate_user(request: Request) -> bool:
-    print(request.headers, api_token)
-    return True
+async def authenticate_user(request: Request) ->  bool:
+    if request.headers.get("authorization"):
+        print(request.headers.get("authorization"))
+        print(api_token)
+        if request.headers.get("authorization") == api_token:
+            return True
+    return False
 
 
 @app.get("/")
@@ -50,6 +52,8 @@ async def add_new_movie(movie: Movie) -> dict:
 
 @app.get("/movies/{id}")
 async def get_dune(id, is_authenticated: bool = Depends(authenticate_user)) -> Movie | dict:
+    if not is_authenticated:
+        return {"error": "invalid authentication token"}
     return movies.get(id, {"error": "Movie not found"})
 
 
